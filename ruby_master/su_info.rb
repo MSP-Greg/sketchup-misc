@@ -97,7 +97,9 @@ module SUInfo
     def gem_list
       # if a gem exists in multiple locations, @names[name] will be > 1
       names = Hash.new { |h,k| h[k] = 0 }
-      dflt  = extract names, Gem.default_specifications_dir
+      dflt_spec_dir = Gem.respond_to?(:default_specifications_dir) ?
+        Gem.default_specifications_dir : Gem::BasicSpecification.default_specifications_dir
+      dflt  = extract names, dflt_spec_dir
       build = extract names, File.join(Gem.default_dir, 'specifications')
       user  = extract names, File.join(Gem.user_dir   , 'specifications')
 
