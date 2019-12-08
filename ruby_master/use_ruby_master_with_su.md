@@ -44,9 +44,11 @@ After downloading it, you'll need to unzip it with 7Zip.  A common base folder n
 
 Since this is Ruby master, I normally place it in `C:\Ruby99-x64`, so any references I have to it will stay the same as the version changes.
 
-Now, copy the file `ruby_master\su_ruby.ps1` to somewhere on your drive, modify the first three lines to match you system and the Ruby you're updating to, then run it from a PowerShell console started in Admin mode, which is required to update any files in `C:\Program Files`.  Running it will also update the cert file used by newer SU versions.
+Now, copy the file `ruby_master\su_ruby.ps1` to somewhere on your drive, modify lines 11 and 12  to match you system, then run it from a PowerShell console started in Admin mode, which is required to update any files in `C:\Program Files`.  Running it will also update the cert file used by newer SU versions.
 
-Typing `RUBY_DESCRIPTION` in the Ruby console should show the version of Ruby being used.
+Lines 11 and 12 currently use `C:\Ruby99-x64` for the stand-alone Ruby folder, and `C:\Program Files\SketchUp\SketchUp 2019_m` for the new SU2019 folder.  If that matches your system, no changes are needed.
+
+After running it, typing `RUBY_DESCRIPTION` in the Ruby console should show the version of Ruby being used.
 
 ## Notes
 

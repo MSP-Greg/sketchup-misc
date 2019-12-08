@@ -6,6 +6,12 @@ Code by MSP-Greg
 
 #>
 
+# modify the following three lines to match your system
+# note that paths use forward slashes
+$ruby = "C:/Ruby99-x64"
+$su   = "C:/Program Files/SketchUp/SketchUp 2019_m"
+
+# below stops script if not running in Admin shell
 $is_admin = ([Security.Principal.WindowsPrincipal] `
   [Security.Principal.WindowsIdentity]::GetCurrent() `
 ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -15,15 +21,8 @@ if (!$is_admin) {
   exit
 }
 
-# modify the following three lines to match your system and Ruby version
-# note that paths use forward slashes
-$ruby    = "C:/Greg/Ruby99-x64"
-$vers    = "2.7.0"
-$su      = "C:/Program Files/SketchUp/SketchUp 2019_m"
-
+$vers    = &$ruby/bin/ruby.exe -e "STDOUT.write RbConfig::CONFIG['ruby_version']"
 $std_lib = "Tools/RubyStdLib"
-
-$UTF8 = $(New-Object System.Text.UTF8Encoding $False)
 
 # copy main Ruby dll
 Copy-Item -Path "$ruby\bin\x64-msvcrt-ruby270.dll" -Destination $su -Force
@@ -52,10 +51,14 @@ $txt += "yr = RbConfig::TOPDIR[/\d{4}/]`n"
 $txt += "repl = RbConfig::TOPDIR.sub('Tools', '').gsub('/', `"\\`")`n"
 $txt += "ENV['PATH'] = ENV['PATH'].sub(`"#{ENV['ProgramFiles']}\\SketchUp\\SketchUp #{yr}\\;`", `"#{repl};`")`n"
 
+# update rbconfig.rb
+$rbconfig = Get-Content -Raw -Path "$su\$std_lib\platform_specific\rbconfig.rb" -Encoding UTF8
+$rbconfig = $rbconfig.replace("/lib/ruby/$vers/x64-mingw32", "/RubyStdLib/platform_specific")
+
+$UTF8 = $(New-Object System.Text.UTF8Encoding $False)
+
 # write to operating_system.rb
 [IO.File]::WriteAllText("$su/$std_lib/rubygems/defaults/operating_system.rb", $txt, $UTF8)
 
-# update rbconfig.rb
-$rbconfig = Get-Content -Raw -Path "$su\$std_lib\platform_specific\rbconfig.rb" -Encoding UTF8
-$new = $rbconfig.replace("/lib/ruby/$vers/x64-mingw32", "/RubyStdLib/platform_specific")
-[IO.File]::WriteAllText("$su/$std_lib/platform_specific/rbconfig.rb", $new, $UTF8)
+# write to rbconfig.rb
+[IO.File]::WriteAllText("$su/$std_lib/platform_specific/rbconfig.rb", $rbconfig, $UTF8)
