@@ -426,7 +426,7 @@ module SUInfo
         ary << [k, val]
         names[k] += 1
       end
-      ary
+      ary.sort
     end
 
   end # class << self
