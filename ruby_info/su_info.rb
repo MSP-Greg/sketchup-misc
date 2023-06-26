@@ -17,11 +17,11 @@ in Ruby
 require_relative 'ssl_test'
 
 module SUInfo
-  
+
   GEM_PLATFORMS = Gem.platforms.reject { |p| p == 'ruby' }.map(&:to_s)
 
-  VERSION = "0.9.3"
-    
+  VERSION = "1.0.0"
+
   class << self
 
     def run(*args)
@@ -53,7 +53,6 @@ module SUInfo
       str << "#{@dash * (@width + 12)}\n"
       # replace user name for public display
       puts str.gsub(/#{ENV['USER']}/, '<user>')
-
     end
 
     private
@@ -74,6 +73,7 @@ module SUInfo
       }
       "#{str}\n"
     end
+
 
     def gem_env
       require 'rubygems' unless defined? Gem
@@ -106,14 +106,14 @@ module SUInfo
       str =  "#{@dash_line} Installed Gems\n".dup
       str << "Build   #{Gem.dir}\n"
       str << "User    #{Gem.user_dir}\n"
-      str << "* gem exists in multiple locations\n\n" 
+      str << "* gem exists in multiple locations\n\n"
 
       str << "#{@dash * 11} Default Gems #{@dash * 11}\n"
       str << output(names, dflt, "D ")
 
       str << "#{@dash * 11} Build Gems #{@dash   * 13} \n"
       str << output(names, build, "B ")
-      
+
       str << "#{@dash * 11} User Gems #{@dash    * 14} \n"
       str << output(names, user, "U ")
       str
@@ -141,6 +141,22 @@ module SUInfo
       gcc = RbConfig::CONFIG["CC_VERSION_MESSAGE"] ?
         RbConfig::CONFIG["CC_VERSION_MESSAGE"][/\A.+?\n/].strip : 'unknown'
       str << "       gcc info: #{gcc}\n\n"
+
+      str << "RbConfig::TOPDIR: #{RbConfig::TOPDIR}\n\n"
+
+      str << "RbConfig::CONFIG['LIBRUBY_SO']:     #{RbConfig::CONFIG['LIBRUBY_SO']}\n" \
+             "RbConfig::CONFIG['LIBRUBY_SONAME']: #{RbConfig::CONFIG['LIBRUBY_SONAME'] || 'nil'}\n" \
+             "RbConfig::CONFIG['ruby_version']:   #{RbConfig::CONFIG['ruby_version']}\n" \
+             "RbConfig::CONFIG['DLEXT']:          #{RbConfig::CONFIG['DLEXT']}\n" \
+             "RbConfig::CONFIG['host_os']:        #{RbConfig::CONFIG['host_os']}\n\n"
+
+      str << "RbConfig::CONFIG['configure_args']:\n"
+      ary = RbConfig::CONFIG['configure_args'].strip.split(/ '?--/)
+        .map { |e| e =~ /\A'?--/ ? e : "--#{e}" }
+        .map { |e| (e.end_with?("'") && !e.start_with?("'")) ? e.sub("--", "'--") : e }
+        .map { |e| "  #{e}" }
+
+      str << ary.join("\n") << "\n\n"
 
       verify = ssl_verify
       str << first('openssl', 'OpenSSL::VERSION', 0) { OpenSSL::VERSION }
@@ -312,7 +328,7 @@ module SUInfo
       require 'net/http'
       uri = URI.parse('https://raw.githubusercontent.com/SketchUp/ruby-api-docs/gh-pages/css/common.css')
 
-      ca_fn = if File.exist?(OpenSSL::X509::DEFAULT_CERT_FILE) 
+      ca_fn = if File.exist?(OpenSSL::X509::DEFAULT_CERT_FILE)
           OpenSSL::X509::DEFAULT_CERT_FILE
         elsif File.exist?(ENV['SSL_CERT_FILE'])
           ENV['SSL_CERT_FILE']
@@ -385,7 +401,7 @@ module SUInfo
     def extract(names, spec_dir)
       gem_ary = Dir['*.gemspec', base: spec_dir]
       ary = []
-      gem_ary.each do |fn| 
+      gem_ary.each do |fn|
         full = fn.sub(/\.gemspec\z/, '').dup
         platform = nil
         GEM_PLATFORMS.each do |p|
