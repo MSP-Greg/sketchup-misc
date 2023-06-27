@@ -121,13 +121,17 @@ module SUInfo
 
     def gem_settings
       str = "\n#{@dash_line} Gem Settings\n".dup
-      %w[ bindir default_dir default_rubygems_dirs default_spec_cache_dir dir path spec_cache_dir user_home user_dir ].each { |d|
+      %w[ bindir default_dir default_rubygems_dirs default_spec_cache_dir
+        dir path spec_cache_dir user_home user_dir ].each { |d|
         if Gem.respond_to?(d)
           str << "#{d.ljust(@first_col)}#{Gem.send(d.to_sym)}\n"
         else
           str << "#{d.ljust(@first_col)}not defined\n"
         end
       }
+      str << "ENV['GEM_HOME']".ljust(@first_col) << ENV['GEM_HOME'] << "\n"
+      str << "ENV['GEM_PATH']".ljust(@first_col) << ENV['GEM_PATH'] << "\n"
+
       "#{str}\n"
     end
 
