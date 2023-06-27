@@ -129,8 +129,8 @@ module SUInfo
           str << "#{d.ljust(@first_col)}not defined\n"
         end
       }
-      str << "ENV['GEM_HOME']".ljust(@first_col) << ENV['GEM_HOME'] << "\n"
-      str << "ENV['GEM_PATH']".ljust(@first_col) << ENV['GEM_PATH'] << "\n"
+      str << "ENV['GEM_HOME']".ljust(@first_col) << ENV.fetch('GEM_HOME', '') << "\n"
+      str << "ENV['GEM_PATH']".ljust(@first_col) << ENV.fetch('GEM_PATH', '') << "\n"
 
       "#{str}\n"
     end
