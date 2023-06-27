@@ -2,13 +2,30 @@
 
 =begin
 
-Load this file from the Ruby console.
+This file shows three bugs with new SU versions.  They affect
+UI::HtmlDialog sizing & resizing, centering, and 'show' after 'close'.
 
-On Window SU 2022, the text 'Is this visible?' is visible.
 
-On Windows and newer SU versions, it is not.
+Load this file from the Ruby console.  The below describes what I seen on my monitor,
+other monitors may show it differently.
 
-On macOS and newer SU versions, the text is visible.
+                     Win SU 2022    Win SU new     macOS SU new
+load file
+  sized                correct      too small        correct
+  load centered          yes           no              yes
+
+HtmlDialogSizing.close
+HtmlDialogSizing.show
+
+  shown centered         yes        not visible        yes
+
+HtmlDialogSizing.larger
+  shown larger           yes        not visible        yes
+
+
+Note that if the Windows SU dimension/size values are scaled by
+UI.scale_factor (same as js DOM window.devicePixelRatio), the
+HtmlDialog is correctly sized.
 
 =end
 
@@ -33,7 +50,7 @@ module HtmlDialogSizing
             </style>
           </head>
           <body>
-            <div>Is this visible?</div>
+            <div>123456789 123456789 0123456789 0123456789</div>
           </body>
         </html>
       DOC
@@ -47,27 +64,34 @@ module HtmlDialogSizing
         style: UI::HtmlDialog::STYLE_DIALOG
       )
       @dlg.set_html @html
-      @dlg.center
-
       puts "#{@dlg.class}  visible #{@dlg.visible?}  size #{@dlg.get_size.inspect}"
       @dlg.set size(550, 180) if @shown
+      @dlg.center
       @dlg.show
-      puts "#{@dlg.class}  After show called"
       @dlg.bring_to_front
-      puts "#{@dlg.class}  visible #{@dlg.visible?}  size #{@dlg.get_size.inspect}"
-
       @shown ||= true
+      puts "#{@dlg.class}  After show called\n" \
+        "#{@dlg.class}  visible #{@dlg.visible?}  size #{@dlg.get_size.inspect}"
     end
-    
+
+    def larger
+      show unless @dlg&.visible?
+      @dlg.set_size 700, 300
+      puts "#{@dlg.class}  After set_size called\n" \
+        "#{@dlg.class}  visible #{@dlg.visible?}  size #{@dlg.get_size.inspect}"
+    end
+
     def close
       @dlg.close
+      nil
     end
 
     def clear
       @dlg = nil
+      @html = nil
       @shown = nil
     end
   end
 end
-
+puts 'HtmlDialogSizing.show'
 HtmlDialogSizing.show
