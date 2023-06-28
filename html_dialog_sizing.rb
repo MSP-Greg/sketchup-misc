@@ -5,12 +5,15 @@
 This file shows three bugs with new SU versions.  They affect
 UI::HtmlDialog sizing & resizing, centering, and 'show' after 'close'.
 
+1. set_size & center before show
+2. show, close, show again
+3. set_size after show
 
 Load this file from the Ruby console.  The below describes what I seen on my monitor,
 other monitors may show it differently.
 
                      Win SU 2022    Win SU new     macOS SU new
-load file
+load file (show)
   sized                correct      too small        correct
   load centered          yes           no              yes
 
@@ -20,12 +23,16 @@ HtmlDialogSizing.show
   shown centered         yes        not visible        yes
 
 HtmlDialogSizing.larger
-  shown larger           yes        not visible        yes
+
+  shown larger           yes        not visible      no change
 
 
 Note that if the Windows SU dimension/size values are scaled by
 UI.scale_factor (same as js DOM window.devicePixelRatio), the
 HtmlDialog is correctly sized.
+
+Windows with new SU is quite messed up. MacOS is better, but resizing a visible
+HtmlDialog doesn't work, with get_size shows the dimensions used in set_size?
 
 =end
 
