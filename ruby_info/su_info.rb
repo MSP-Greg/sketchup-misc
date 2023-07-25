@@ -99,22 +99,27 @@ module SUInfo
       names = Hash.new { |h,k| h[k] = 0 }
       dflt_spec_dir = Gem.respond_to?(:default_specifications_dir) ?
         Gem.default_specifications_dir : Gem::BasicSpecification.default_specifications_dir
-      dflt  = extract names, dflt_spec_dir
-      build = extract names, File.join(Gem.default_dir, 'specifications')
-      user  = extract names, File.join(Gem.user_dir   , 'specifications')
+      dflt      = extract names, dflt_spec_dir
+      bundled   = extract names, File.join(Gem.default_dir, 'specifications')
+      installed = extract names, File.join(Gem.dir        , 'specifications')
+      user      = extract names, File.join(Gem.user_dir   , 'specifications')
 
       str =  "#{@dash_line} Installed Gems\n".dup
-      str << "Build   #{Gem.dir}\n"
-      str << "User    #{Gem.user_dir}\n"
+      str << "Bundled   #{Gem.default_dir}\n"
+      str << "Installed #{Gem.dir}\n"
+      str << "User      #{Gem.user_dir}\n"
       str << "* gem exists in multiple locations\n\n"
 
-      str << "#{@dash * 11} Default Gems #{@dash * 11}\n"
+      str << "#{@dash * 12} Default Gems #{@dash * 12}\n"
       str << output(names, dflt, "D ")
 
-      str << "#{@dash * 11} Build Gems #{@dash   * 13} \n"
-      str << output(names, build, "B ")
+      str << "#{@dash * 12} Bundled Gems #{@dash * 12} \n"
+      str << output(names, bundled, "B ")
 
-      str << "#{@dash * 11} User Gems #{@dash    * 14} \n"
+      str << "#{@dash * 12} Installed Gems #{@dash * 10} \n"
+      str << output(names, installed, "I ")
+
+      str << "#{@dash * 12} User Gems #{@dash    * 15} \n"
       str << output(names, user, "U ")
       str
     end
