@@ -34,13 +34,18 @@ module SUGem
 
     def run args
       returned = false
+      @is_loaded ||= false
 
       # load here so only loaded when run
-      require 'stringio'
-      require 'rubygems'
-      require 'rubygems/command_manager'
-      require 'rubygems/config_file'
-      require 'rubygems/deprecate'
+      unless @is_loaded
+        require 'stringio'
+        require 'rubygems'
+        require 'rubygems/command_manager'
+        require 'rubygems/config_file'
+        require 'rubygems/deprecate'
+        require 'openssl'
+        @is_loaded = true
+      end
 
       ary_args = args.split(/ +/)
 
