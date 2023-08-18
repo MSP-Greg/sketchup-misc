@@ -1,0 +1,38 @@
+Notes for SketchUp Windows RubyGems updates, should work for SU 2022 and 3023
+
+All steps require admin accounts, or approval via UAC.
+
+1. Create two paths from an Admin PowerShell or Command console:
+
+md "C:/Program Files/SketchUp/SketchUp 2022/Tools/lib/ruby"
+md "C:/Program Files/SketchUp/SketchUp 2022/Tools/RubyStdLib/rubygems/defaults"
+    -- or --
+md "C:/Program Files/SketchUp/SketchUp 2023/Tools/lib/ruby"
+md "C:/Program Files/SketchUp/SketchUp 2023/Tools/RubyStdLib/rubygems/defaults"
+
+2. Copy the file '.gemrc' to:
+  C:/Program Files/SketchUp/SketchUp 2022/Tools
+      -- or --
+  C:/Program Files/SketchUp/SketchUp 2023/Tools
+
+3. Copy the file 'operating_system.rb' to the newly created 'defaults' folder
+
+4. Got to https://github.com/MSP-Greg/sketchup-ext-gem/releases and download the file
+    'ruby27-x64ms.zip'
+    I think the direct link is:
+    https://github.com/MSP-Greg/sketchup-ext-gem/releases/download/v1.0.0/ruby27-x64ms.zip
+
+5. Open the zip file, and locate the folder:
+    ruby27-x64ms\lib\ruby\gems
+    Copy the folder to:
+    C:/Program Files/SketchUp/SketchUp 2022/Tools/lib/ruby
+      -- or --
+    C:/Program Files/SketchUp/SketchUp 2023/Tools/lib/ruby
+
+6. Open the zip file, and locate the folder:
+    ruby27-x64ms.zip\ruby27-x64ms\lib\ruby\2.7.0
+    In it, you'll find an rdoc.rb file and an rdoc folder
+    copy those to:
+    C:/Program Files/SketchUp/SketchUp 2022/Tools/RubyStdLib
+      -- or --    
+    C:/Program Files/SketchUp/SketchUp 2023/Tools/RubyStdLib
