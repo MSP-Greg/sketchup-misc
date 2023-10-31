@@ -1,19 +1,27 @@
 # frozen_string_literal: true
+# Code by MSP-Greg
 
 # Utility to use RubyGems in SketchUp's Ruby console
-#
-# Note that Gems cannot be installed in SketchUp if they require compiling.
 #
 # In the Ruby console:
 #    load '<path to this file>'
 #
+# Some gems commands may require user interaction.  these commands are not supported.
+# An example would be uninstalling a gem that has multiple versions installed.
+# To use the uninstall command, one will need to specify which version to uninstall:
+#
+#    SUGem.uninstall "minitest:5.20.0"
+#
+# Note that Gems cannot be installed in SketchUp if they require compiling.
+#
 # Run by using using gem command as method
 #
 #     SUGem.env
+#     SUGem.install "minitest:5.20.0"
 #     SUGem.install "hike --user-install -N"
 #     SUGem.uninstall "hike"
-#     SUGem.query "hike -d"
-#     SUGem.query "-d"
+#     SUGem.list "hike -d"
+#     SUGem.list "-d"
 #     SUGem.outdated
 #
 # Or you can run by using a full command string as below.  Note that the passed
@@ -23,9 +31,9 @@
 #     SUGem.run "install hike --user-install -N"
 #
 # An additional command is available, which lists all gems available to SketchUp,
-# and also shows their location/type
-# The command is `SUGem.su_list`
-
+# and also shows their location/type.
+# The command is `SUGem.su_gem_list`
+#
 module SUGem
 
   GEM_PLATFORMS = Gem.platforms.reject { |p| p == 'ruby' }.map(&:to_s)
@@ -80,7 +88,7 @@ module SUGem
 
       cmd.run Gem.configuration.args, build_args
       t = sio_err.string
-      puts "err #{t}\n" unless t.empty?
+      puts "-- error --\n#{t}\n" unless t.empty?
     rescue Gem::SystemExitException => e
       t = e.message
       puts t unless t.end_with? "exit_code 0"
@@ -90,12 +98,12 @@ module SUGem
       return if returned
       t = sio_out ? sio_out.string : ''
       puts t unless t.empty?
-      sio_in  and sio_in.close
-      sio_out and sio_out.close
-      sio_err and sio_err.close
+      sio_in&.close
+      sio_out&.close
+      sio_err&.close
     end
 
-    def su_list
+    def su_gem_list
       dash  = 8212.chr(Encoding::UTF_8)
       width = 75
       dash_line = dash * width
@@ -148,7 +156,8 @@ module SUGem
       Gem::Command.extra_args = Gem.configuration[:gem]
     end
 
-    # used by gem_list
+    # used by su_gem_list
+    #
     def output(names, ary, pre)
       cntr = 1
       str = ''.dup
@@ -165,7 +174,8 @@ module SUGem
       str.rstrip + "\n\n"
     end
 
-    # used by gem_list
+    # used by su_gem_list
+    #
     def extract(names, spec_dir)
       gem_ary = Dir['*.gemspec', base: spec_dir]
       ary = []

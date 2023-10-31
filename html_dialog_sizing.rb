@@ -17,11 +17,13 @@ load file (show)
   sized                correct      too small        correct
   load centered          yes           no              yes
 
+Then type in the in the console:
 HtmlDialogSizing.close
 HtmlDialogSizing.show
 
   shown centered         yes        not visible        yes
 
+Then type in the in the console:
 HtmlDialogSizing.larger
 
   shown larger           yes        not visible      no change

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+cd /Applications/SketchUp\ 2022/SketchUp.app/Contents/Frameworks/Ruby.framework/Versions/2.7.1/lib/ruby/2.7.0/rubygems
+mkdir 'defaults'
+cd defaults
+
+printf "ENV['GEMRC'] = \"#{RbConfig::TOPDIR}/.gemrc\"\n" >> ./operating_system.rb
+printf "ENV['GEM_PATH'] = \"#{RbConfig::TOPDIR}/lib/ruby/gems/#{RbConfig::CONFIG['ruby_version']}\"\n" >> ./operating_system.rb
+printf "Gem.paths = ENV\n" >> ./operating_system.rb
+
+cd /Applications/SketchUp\ 2022/SketchUp.app/Contents/Frameworks/Ruby.framework/Versions/2.7.1
+printf "install: -N\nupdate:  -N\n" >> .gemrc
