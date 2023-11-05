@@ -6,7 +6,7 @@
 # In the Ruby console:
 #    load '<path to this file>'
 #
-# Some gems commands may require user interaction.  these commands are not supported.
+# Some gems commands may require user interaction.  These commands are not supported.
 # An example would be uninstalling a gem that has multiple versions installed.
 # To use the uninstall command, one will need to specify which version to uninstall:
 #
@@ -178,9 +178,19 @@ module SUGem
     #
     def extract(names, spec_dir)
       gem_ary = Dir['*.gemspec', base: spec_dir]
+
+      if GEM_PLATFORMS.any? { |p| p.include? 'mswin' }
+        exclude = %w[-x64-mingw32 -x64-mingw-ucrt]
+      else
+        exclude = nil
+      end
+
       ary = []
       gem_ary.each do |fn|
         full = fn.sub(/\.gemspec\z/, '').dup
+        if exclude
+          next if exclude.any? { |p| full.end_with? p }
+        end
         platform = nil
         GEM_PLATFORMS.each do |p|
           if full.end_with? p

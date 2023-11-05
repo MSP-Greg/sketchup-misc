@@ -199,8 +199,9 @@ module SUInfo
         @rl_type = (Readline.method(:line_buffer).source_location ? 'rb' : 'so')
         str << first('readline', "Readline::VERSION (#{@rl_type})", 3) { Readline::VERSION }
         str << double('zlib', 'Zlib::VERSION', 'ZLIB_VERSION', 3, 1, 2) { [Zlib::VERSION, Zlib::ZLIB_VERSION] }
-      rescue LoadError
-        str << "readline is unavailable\n"
+      rescue LoadError, NoMethodError
+        str << "readline is unavailable".ljust(@@col_wid[3])
+        str << double('zlib', 'Zlib::VERSION', 'ZLIB_VERSION', 3, 1, 2) { [Zlib::VERSION, Zlib::ZLIB_VERSION] }
       end
 
       if const_defined?(:Integer)
@@ -409,9 +410,19 @@ module SUInfo
     # used by gem_list
     def extract(names, spec_dir)
       gem_ary = Dir['*.gemspec', base: spec_dir]
+
+      if GEM_PLATFORMS.any? { |p| p.include? 'mswin' }
+        exclude = %w[-x64-mingw32 -x64-mingw-ucrt]
+      else
+        exclude = nil
+      end
+
       ary = []
       gem_ary.each do |fn|
         full = fn.sub(/\.gemspec\z/, '').dup
+        if exclude
+          next if exclude.any? { |p| full.end_with? p }
+        end
         platform = nil
         GEM_PLATFORMS.each do |p|
           if full.end_with? p
