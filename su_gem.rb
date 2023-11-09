@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # Code by MSP-Greg
 
 # Utility to use RubyGems in SketchUp's Ruby console
@@ -36,11 +37,16 @@
 #
 module SUGem
 
+  # Prepend on Gem::StreamUI, skip method (raises Gem::SystemExitException)
+  module SUGemUIPrep
+    def terminate_interaction(status = 0) end
+  end
+
   GEM_PLATFORMS = Gem.platforms.reject { |p| p == 'ruby' }.map(&:to_s)
 
   class << self
 
-    def run args
+    def run(args)
       returned = false
       @is_loaded ||= false
 
@@ -53,6 +59,7 @@ module SUGem
         require 'rubygems/deprecate'
         require 'openssl'
         @is_loaded = true
+        Gem::StreamUI.prepend SUGemUIPrep
       end
 
       ary_args = args.split(/ +/)
@@ -82,25 +89,38 @@ module SUGem
         Gem::Command.add_specific_extra_args command_name, config_args
       end
 
-      sio_in = StringIO.new
-      sio_out, sio_err = StringIO.new, StringIO.new
+      sio_in  = StringIO.new
+      sio_out = StringIO.new
+      sio_err = StringIO.new
       cmd.ui = Gem::StreamUI.new(sio_in, sio_out, sio_err, false)
 
-      cmd.run Gem.configuration.args, build_args
-      t = sio_err.string
-      puts "-- error --\n#{t}\n" unless t.empty?
-    rescue Gem::SystemExitException => e
-      t = e.message
-      puts t unless t.end_with? "exit_code 0"
-      t = sio_err.string
+      spec = cmd.run Gem.configuration.args, build_args
+      true
+    rescue StandardError => e
+      puts 'regular error', e.message, e.backtrace
       puts t unless t.empty?
     ensure
-      return if returned
-      t = sio_out ? sio_out.string : ''
-      puts t unless t.empty?
-      sio_in&.close
-      sio_out&.close
-      sio_err&.close
+      unless returned
+        t = sio_out&.string || ''
+        puts t unless t.empty?
+        t = sio_err&.string || ''
+        # bundled gems will match below
+        if t.include? 'is not installed in GEM_HOME'
+          # below code is used to obtain the gem version, matches the message RubyGems
+          # generates when one tries to uninstall a default gem
+          names = Hash.new { |h, k| h[k] = 0 }
+          bundled = extract(names, File.join(Gem.default_dir, 'specifications')).to_h
+          gem = Gem.configuration.args[0]
+          gem_name = bundled[gem] ? "#{gem}-#{bundled[gem]}" : gem
+
+          puts "Gem #{gem_name} cannot be uninstalled because it is a bundled gem\n"
+        else
+          puts t unless t.empty?
+        end
+        sio_in&.close
+        sio_out&.close
+        sio_err&.close
+      end
     end
 
     def su_gem_list
@@ -109,9 +129,10 @@ module SUGem
       dash_line = dash * width
 
       # if a gem exists in multiple locations, @names[name] will be > 1
-      names = Hash.new { |h,k| h[k] = 0 }
+      names = Hash.new { |h, k| h[k] = 0 }
       dflt_spec_dir = Gem.respond_to?(:default_specifications_dir) ?
         Gem.default_specifications_dir : Gem::BasicSpecification.default_specifications_dir
+
       dflt      = extract names, dflt_spec_dir
       bundled   = extract names, File.join(Gem.default_dir, 'specifications')
       installed = extract names, File.join(Gem.dir        , 'specifications')
@@ -124,16 +145,16 @@ module SUGem
       str << "* gem exists in multiple locations\n\n"
 
       str << "#{dash * 12} Default Gems #{dash * 12}\n"
-      str << output(names, dflt, "D ")
+      str << output(names, dflt, 'D ')
 
       str << "#{dash * 12} Bundled Gems #{dash * 12} \n"
-      str << output(names, bundled, "B ")
+      str << output(names, bundled, 'B ')
 
       str << "#{dash * 12} Installed Gems #{dash * 10} \n"
-      str << output(names, installed, "I ")
+      str << output(names, installed, 'I ')
 
-      str << "#{dash * 12} User Gems #{dash    * 15} \n"
-      str << output(names, user, "U ")
+      str << "#{dash * 12} User Gems #{dash * 15} \n"
+      str << output(names, user, 'U ')
       puts str.gsub(/#{ENV['USER']}/, '<user>')
     end
 
@@ -143,8 +164,8 @@ module SUGem
     # Separates the build arguments (those following <code>--</code>) from the
     # other arguments in the list.
 
-    def extract_build_args args # :nodoc:
-      return [] unless offset = args.index('--')
+    def extract_build_args(args)
+      return [] unless (offset = args.index('--'))
       build_args = args.slice!(offset...args.length)
       build_args.shift
       build_args
@@ -161,17 +182,16 @@ module SUGem
     def output(names, ary, pre)
       cntr = 1
       str = ''.dup
+
       ary.each do |a|
-        if names[a[0]] > 1
-          str << "#{pre} #{a[0].ljust 25} * #{a[1]}\n"
-        else
-          str << "#{pre} #{a[0].ljust 25}   #{a[1]}\n"
-        end
-        str << "\n" if (cntr % 5) == 0
+        str << (names[a[0]] > 1 ? "#{pre} #{a[0].ljust 25} * #{a[1]}\n" :
+          "#{pre} #{a[0].ljust 25}   #{a[1]}\n")
+
+        str << "\n" if (cntr % 5).zero?
         cntr += 1
       end
       # str can contain two returns at end
-      str.rstrip + "\n\n"
+      "#{str.rstrip}\n\n"
     end
 
     # used by su_gem_list
@@ -179,25 +199,21 @@ module SUGem
     def extract(names, spec_dir)
       gem_ary = Dir['*.gemspec', base: spec_dir]
 
-      if GEM_PLATFORMS.any? { |p| p.include? 'mswin' }
-        exclude = %w[-x64-mingw32 -x64-mingw-ucrt]
-      else
-        exclude = nil
-      end
+      exclude = GEM_PLATFORMS.any? { |p| p.include? 'mswin' } ?
+        %w[-x64-mingw32 -x64-mingw-ucrt] : nil
 
       ary = []
       gem_ary.each do |fn|
         full = fn.sub(/\.gemspec\z/, '').dup
-        if exclude
-          next if exclude.any? { |p| full.end_with? p }
-        end
+        next if exclude&.any? { |p| full.end_with? p }
+
         platform = nil
         GEM_PLATFORMS.each do |p|
-          if full.end_with? p
-            platform = p
-            full.sub! "-#{p}", ''
-            break
-          end
+          next unless full.end_with? p
+
+          platform = p
+          full.sub! "-#{p}", ''
+          break
         end
 
         name, _, vers = full.rpartition '-'
@@ -207,8 +223,8 @@ module SUGem
 
       hsh = ary.group_by(&:first)
       ary = []
-      hsh.each do |k,v|
-        val = v.sort { |a,b| b[1] <=> a[1] }
+      hsh.each do |k, v|
+        val = v.sort { |a, b| b[1] <=> a[1] }
           .map { |i| i[2].nil? ? i[1] : "#{i[1]}-#{i[2]}" }
           .join ' '
         ary << [k, val]
@@ -219,8 +235,7 @@ module SUGem
 
     def method_missing(meth, arg = '')
       raise ArgumentError('SUGem - argument must be a string') unless String === arg
-      arg =  "#{meth} #{arg}"
-      run arg
+      run "#{meth} #{arg}"
     end
   end # class << self
 end
