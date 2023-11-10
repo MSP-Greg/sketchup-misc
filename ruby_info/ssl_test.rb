@@ -73,7 +73,7 @@ module TestSSL
 
     def setup
       @ca_key  = pkey("rsa2048")
-      @svr_key = pkey("rsa1024")
+      @svr_key = pkey("rsa2048")
       ca      = OpenSSL::X509::Name.parse("/DC=org/DC=ruby-lang/CN=CA")
       svr     = OpenSSL::X509::Name.parse("/DC=org/DC=ruby-lang/CN=localhost")
 

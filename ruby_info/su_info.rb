@@ -333,7 +333,7 @@ module SUInfo
     end
 
     def ssl_verify
-      t_st = Time.now
+      t_st = Process.clock_gettime Process::CLOCK_MONOTONIC
       require 'openssl'
       require 'net/http'
       uri = URI.parse('https://raw.githubusercontent.com/SketchUp/ruby-api-docs/gh-pages/css/common.css')
@@ -349,13 +349,13 @@ module SUInfo
       opts = {
         :use_ssl => true,
         :verify_mode => OpenSSL::SSL::VERIFY_PEER,
-        :ca_file => ca_fn,
+        # :ca_file => ca_fn,  # newer versions of SketchUp contain valid and visible cert file
         :verify_depth => 5
       }
       ret = "*** FAILURE ***"
       Net::HTTP.start(uri.host, uri.port, opts) { |https|
         if Net::HTTPOK === https.get(uri.path)
-          ret = "Success in #{sprintf("%5.3f", Time.now - t_st)} sec"
+          ret = format('Success in %5.3f sec', (Process.clock_gettime(Process::CLOCK_MONOTONIC) - t_st).to_f)
         end
       }
       ret
