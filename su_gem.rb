@@ -33,7 +33,7 @@
 #
 # An additional command is available, which lists all gems available to SketchUp,
 # and also shows their location/type.
-# The command is `SUGem.su_gem_list`
+# The command is `SUGem.su_list`
 #
 module SUGem
 
@@ -123,7 +123,7 @@ module SUGem
       end
     end
 
-    def su_gem_list
+    def su_list
       dash  = 8212.chr(Encoding::UTF_8)
       width = 75
       dash_line = dash * width
