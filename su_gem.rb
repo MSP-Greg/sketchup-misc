@@ -96,6 +96,10 @@ module SUGem
 
       spec = cmd.run Gem.configuration.args, build_args
       true
+    rescue Gem::DependencyRemovalException => e
+      puts 'Dependency error', e.message, e.backtrace
+      t = sio_out&.string || ''
+      puts t unless t.empty?
     rescue StandardError => e
       puts 'regular error', e.message, e.backtrace
       puts t unless t.empty?
@@ -113,7 +117,11 @@ module SUGem
           gem = Gem.configuration.args[0]
           gem_name = bundled[gem] ? "#{gem}-#{bundled[gem]}" : gem
 
-          puts "Gem #{gem_name} cannot be uninstalled because it is a bundled gem\n"
+          puts "ERROR: Gem #{gem_name} cannot be uninstalled because it is a bundled gem\n"
+        elsif ary_args[0] == 'uninstall' && t.include?('Gem::DependencyRemovalException')
+          gem_name = Gem.configuration.args[0]
+          puts "ERROR: Gem '#{gem_name}' cannot be uninstalled because another gem depends on it."
+          puts "Use the '-I' argument to force uninstall.\n"
         else
           puts t unless t.empty?
         end
