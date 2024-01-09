@@ -11,14 +11,16 @@
 # An example would be uninstalling a gem that has multiple versions installed.
 # To use the uninstall command, one will need to specify which version to uninstall:
 #
-#    SUGem.uninstall "minitest:5.20.0"
+#    SUGem.uninstall "minitest:5.20.0"     # SU 2019 and later
+#    SUGem.uninstall "minitest -v 5.20.0"  # SU 2018 and earlier
 #
 # Note that Gems cannot be installed in SketchUp if they require compiling.
 #
 # Run by using using gem command as method
 #
 #     SUGem.env
-#     SUGem.install "minitest:5.20.0"
+#     SUGem.install "minitest:5.20.0"      # SU 2019 and later
+#     SUGem.install "minitest -v 5.20.0"   # SU 2018 and earlier
 #     SUGem.install "hike --user-install -N"
 #     SUGem.uninstall "hike"
 #     SUGem.list "hike -d"
@@ -98,16 +100,16 @@ module SUGem
       true
     rescue Gem::DependencyRemovalException => e
       puts 'Dependency error', e.message, e.backtrace
-      t = sio_out&.string || ''
+      t = sio_out && sio_out.string || ''
       puts t unless t.empty?
     rescue StandardError => e
       puts 'regular error', e.message, e.backtrace
       puts t unless t.empty?
     ensure
       unless returned
-        t = sio_out&.string || ''
+        t = sio_out && sio_out.string || ''
         puts t unless t.empty?
-        t = sio_err&.string || ''
+        t = sio_err && sio_err.string || ''
         # bundled gems will match below
         if t.include? 'is not installed in GEM_HOME'
           # below code is used to obtain the gem version, matches the message RubyGems
@@ -125,9 +127,9 @@ module SUGem
         else
           puts t unless t.empty?
         end
-        sio_in&.close
-        sio_out&.close
-        sio_err&.close
+        sio_in  && sio_in.close
+        sio_out && sio_out.close
+        sio_err && sio_err.close
       end
     end
 
@@ -213,7 +215,7 @@ module SUGem
       ary = []
       gem_ary.each do |fn|
         full = fn.sub(/\.gemspec\z/, '').dup
-        next if exclude&.any? { |p| full.end_with? p }
+        next if exclude && exclude.any? { |p| full.end_with? p }
 
         platform = nil
         GEM_PLATFORMS.each do |p|
