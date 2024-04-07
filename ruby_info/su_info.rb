@@ -168,8 +168,9 @@ module SUInfo
       str << ary.join("\n") << "\n\n"
 
       verify = ssl_verify
+
       str << first('openssl', 'OpenSSL::VERSION', 0) { OpenSSL::VERSION }
-      str << additional('SSL Verify'             , 0, 4) { verify }
+      str << additional('SSL Verify'             , 0, 4) { verify}
       str << additional('OPENSSL_VERSION'        , 0, 4) { OpenSSL::OPENSSL_VERSION }
       if OpenSSL.const_defined?(:OPENSSL_LIBRARY_VERSION)
         str << additional('OPENSSL_LIBRARY_VERSION', 0, 4) { OpenSSL::OPENSSL_LIBRARY_VERSION }
@@ -198,11 +199,10 @@ module SUInfo
         require 'readline'
         @rl_type = (Readline.method(:line_buffer).source_location ? 'rb' : 'so')
         str << first('readline', "Readline::VERSION (#{@rl_type})", 3) { Readline::VERSION }
-        str << double('zlib', 'Zlib::VERSION', 'ZLIB_VERSION', 3, 1, 2) { [Zlib::VERSION, Zlib::ZLIB_VERSION] }
       rescue LoadError, NoMethodError
-        str << "readline is unavailable".ljust(@@col_wid[3])
-        str << double('zlib', 'Zlib::VERSION', 'ZLIB_VERSION', 3, 1, 2) { [Zlib::VERSION, Zlib::ZLIB_VERSION] }
+        str << "readline is unavailable\n".ljust(@@col_wid[3])
       end
+      str << double('zlib', 'Zlib::VERSION', 'ZLIB_VERSION', 3, 1, 2) { [Zlib::VERSION, Zlib::ZLIB_VERSION] }
 
       if const_defined?(:Integer)
         str << ( Integer.const_defined?(:GMP_VERSION) ?
@@ -336,26 +336,19 @@ module SUInfo
       t_st = Process.clock_gettime Process::CLOCK_MONOTONIC
       require 'openssl'
       require 'net/http'
+      t_loaded = Process.clock_gettime Process::CLOCK_MONOTONIC
       uri = URI.parse('https://raw.githubusercontent.com/SketchUp/ruby-api-docs/gh-pages/css/common.css')
-
-      ca_fn = if File.exist?(OpenSSL::X509::DEFAULT_CERT_FILE)
-          OpenSSL::X509::DEFAULT_CERT_FILE
-        elsif File.exist?(ENV['SSL_CERT_FILE'])
-          ENV['SSL_CERT_FILE']
-        elsif RUBY_PLATFORM =~ /mswin|mingw/ && File.exist?('C:/Program Files/SketchUp/ssl/cert.pem')
-          'C:/Program Files/SketchUp/ssl/cert.pem'
-        end
 
       opts = {
         :use_ssl => true,
         :verify_mode => OpenSSL::SSL::VERIFY_PEER,
-        # :ca_file => ca_fn,  # newer versions of SketchUp contain valid and visible cert file
         :verify_depth => 5
       }
       ret = "*** FAILURE ***"
       Net::HTTP.start(uri.host, uri.port, opts) { |https|
         if Net::HTTPOK === https.get(uri.path)
-          ret = format('Success in %5.3f sec', (Process.clock_gettime(Process::CLOCK_MONOTONIC) - t_st).to_f)
+          ret = format('Success in %5.3f sec, loaded in %5.3f sec',
+            (Process.clock_gettime(Process::CLOCK_MONOTONIC) - t_loaded).to_f, (t_loaded - t_st).to_f)
         end
       }
       ret

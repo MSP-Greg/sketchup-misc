@@ -143,7 +143,23 @@ module SUGem
       dflt_spec_dir = Gem.respond_to?(:default_specifications_dir) ?
         Gem.default_specifications_dir : Gem::BasicSpecification.default_specifications_dir
 
-      dflt      = extract names, dflt_spec_dir
+      dflt       = extract names, dflt_spec_dir
+      std_lib    = "#{RbConfig::TOPDIR}/RubyStdLib"
+      std_lib_so = "#{RbConfig::TOPDIR}/RubyStdLib/platform_specific"
+      dflt, missing = dflt.partition do |ary|
+        name = ary.first
+        p1, p2 = name.split('-', 2)
+        File.exist?("#{std_lib}/#{name}.rb") ||
+        File.exist?("#{std_lib_so}/#{name}.so") ||
+        File.exist?("#{std_lib}/#{p1}/#{p2}.rb") ||
+        File.exist?("#{std_lib_so}/#{p1}/#{p2}.so")
+      end
+
+      # should always be empty
+      unless missing.empty?
+        puts "-------------------------------- missing", missing
+      end
+
       bundled   = extract names, File.join(Gem.default_dir, 'specifications')
       installed = extract names, File.join(Gem.dir        , 'specifications')
       user      = extract names, File.join(Gem.user_dir   , 'specifications')
