@@ -111,16 +111,16 @@ module SUInfo
       str << "* gem exists in multiple locations\n\n"
 
       str << "#{@dash * 12} Default Gems #{@dash * 12}\n"
-      str << output(names, dflt, "D ")
+      str << output(names, dflt, "D ") if dflt
 
       str << "#{@dash * 12} Bundled Gems #{@dash * 12} \n"
-      str << output(names, bundled, "B ")
+      str << output(names, bundled, "B ") if bundled
 
       str << "#{@dash * 12} Installed Gems #{@dash * 10} \n"
-      str << output(names, installed, "I ")
+      str << output(names, installed, "I ") if installed
 
       str << "#{@dash * 12} User Gems #{@dash    * 15} \n"
-      str << output(names, user, "U ")
+      str << output(names, user, "U ") if user
       str
     end
 
@@ -402,7 +402,15 @@ module SUInfo
 
     # used by gem_list
     def extract(names, spec_dir)
-      gem_ary = Dir['*.gemspec', base: spec_dir]
+      return nil unless Dir.exist? spec_dir
+      if RUBY_VERSION > '2.5'
+        gem_ary = Dir['*.gemspec', base: spec_dir]
+      else
+        #Dir.chdir("'#{spec_dir}'") do
+        Dir.chdir(spec_dir) do
+          gem_ary = Dir['*.gemspec']
+        end
+      end
 
       if GEM_PLATFORMS.any? { |p| p.include? 'mswin' }
         exclude = %w[-x64-mingw32 -x64-mingw-ucrt]
