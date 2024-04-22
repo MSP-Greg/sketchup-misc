@@ -1,7 +1,4 @@
 # frozen_string_literal: true
-=begin
-ruby C:\Greg\GitHub\appveyor_ruby\ssl_test.rb
-=end
 
 require 'openssl'
 require 'socket'
