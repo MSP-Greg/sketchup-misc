@@ -98,7 +98,7 @@ module SUInfo
       # if a gem exists in multiple locations, @names[name] will be > 1
       names = Hash.new { |h,k| h[k] = 0 }
       dflt_spec_dir = Gem.respond_to?(:default_specifications_dir) ?
-        Gem.default_specifications_dir : Gem::BasicSpecification.default_specifications_dir
+        Gem.default_specifications_dir : Gem::Specification.default_specifications_dir
       dflt      = extract names, dflt_spec_dir
       bundled   = extract names, File.join(Gem.default_dir, 'specifications')
       installed = extract names, File.join(Gem.dir        , 'specifications')
@@ -339,10 +339,13 @@ module SUInfo
     end
 
     def ssl_verify
-      t_st = Process.clock_gettime Process::CLOCK_MONOTONIC
+      if (use_clk_gettime = Process.respond_to? :clock_gettime)
+        clk_mono = Process::CLOCK_MONOTONIC
+      end
+      t_st = use_clk_gettime ? Process.clock_gettime(clk_mono) : Time.now
       require 'openssl'
       require 'net/http'
-      t_loaded = Process.clock_gettime Process::CLOCK_MONOTONIC
+      t_loaded = use_clk_gettime ? Process.clock_gettime(clk_mono) : Time.now
       uri = URI.parse('https://raw.githubusercontent.com/SketchUp/ruby-api-docs/gh-pages/css/common.css')
 
       opts = {
@@ -353,8 +356,9 @@ module SUInfo
       ret = "*** FAILURE ***"
       Net::HTTP.start(uri.host, uri.port, opts) { |https|
         if Net::HTTPOK === https.get(uri.path)
+          t_end = use_clk_gettime ? Process.clock_gettime(clk_mono) : Time.now
           ret = format('Success in %5.3f sec, loaded in %5.3f sec',
-            (Process.clock_gettime(Process::CLOCK_MONOTONIC) - t_loaded).to_f, (t_loaded - t_st).to_f)
+            (t_end - t_loaded).to_f, (t_loaded - t_st).to_f)
         end
       }
       ret

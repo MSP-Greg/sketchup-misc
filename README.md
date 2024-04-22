@@ -2,7 +2,7 @@
 
 Miscellaneous code for use with SketchUp, and misc docs
 
-The file `ruby_info/su_info.rb` outputs Ruby related information when loaded.
+The file `su_info.rb` outputs Ruby related information when loaded.  Tested with SU 2016 and later.
 
 Other files exist that show various behaviors in SketchUp. Typically these show
 issues related to the SketchUp Ruby API and its use in plugins/extensions.
