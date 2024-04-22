@@ -128,8 +128,14 @@ module SUInfo
       str = "\n#{@dash_line} Gem Settings\n".dup
       %w[ bindir default_dir default_rubygems_dirs default_spec_cache_dir
         dir path spec_cache_dir user_home user_dir ].each { |d|
-        if Gem.respond_to?(d)
-          str << "#{d.ljust(@first_col)}#{Gem.send(d.to_sym)}\n"
+        if Gem.respond_to? d
+          if d == 'path'
+            blank = ''.ljust(@first_col -1)
+            data = "#{d.ljust(@first_col-2)}#{Gem.send(d.to_sym)}\n".gsub ', ', ",\n#{blank}"
+            str << data
+          else
+            str << "#{d.ljust(@first_col)}#{Gem.send(d.to_sym)}\n"
+          end
         else
           str << "#{d.ljust(@first_col)}not defined\n"
         end
