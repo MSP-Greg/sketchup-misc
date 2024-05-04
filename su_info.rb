@@ -155,7 +155,9 @@ module SUInfo
       str = "#{@dash_line} Ruby Info\n#{RUBY_DESCRIPTION}\n\n".dup
       gcc = RbConfig::CONFIG["CC_VERSION_MESSAGE"] ?
         RbConfig::CONFIG["CC_VERSION_MESSAGE"][/\A.+?\n/].strip : 'unknown'
-      str << "       gcc info: #{gcc}\n\n"
+
+      str << "     PATCH_LEVEL: #{RUBY_PATCHLEVEL}\n"
+      str << "        gcc info: #{gcc}\n\n"
 
       str << "RbConfig::TOPDIR: #{RbConfig::TOPDIR}\n\n"
 
