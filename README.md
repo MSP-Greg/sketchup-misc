@@ -1,12 +1,12 @@
 # sketchup-misc
 
-Miscellaneous code for use with SketchUp, and misc docs
+Miscellaneous code for use with SketchUp and also stand-alone Rubies.
 
 The file `su_info.rb` outputs Ruby related information when loaded in SketchUp.  Tested with SU 2016 and later.
 
 The file `ruby_info.rb` outputs Ruby related information for stand-alone Rubies.  It was designed to be used on 'fresh' Ruby builds of all platforms and OS's, so it shows additional information.
 
-The file `su_gem.rb` wraps RubyGems' main object `Gem` in an `SUGem` object, allowing use of RubyGems in scripts or in SketchUp's Ruby Console.
+The file `su_gem.rb` wraps RubyGems' main object `Gem` in an `SUGem` object, allowing use of RubyGems in SketchUp's Ruby Console or scripts.  See the comments at the top of the file.
 
 Other files may be included that show various behaviors in SketchUp. Typically these show
 issues related to the SketchUp Ruby API and its use in plugins/extensions.

@@ -3,7 +3,7 @@
 must run in admin console
 
 Code by MSP-Greg
-Version 2024-3.2.4
+Version 2024-3.2.5
 #>
 
 $is_admin = ([Security.Principal.WindowsPrincipal] `
@@ -15,13 +15,22 @@ if (!$is_admin) {
   exit
 }
 
-# modify the following three lines to match your system and Ruby version
-# note that paths use forward slashes
+# modify the below lines setting $ruby, $su, and $vers to match your system
 
 # where you placed the zip file folders
-$ruby = "C:/ruby-mswin-su-3.2.4"
+$ruby = "C:/ruby-mswin-su-3.2.5"
+if (!(Test-Path -Path $ruby/bin -PathType Container )) {
+  echo "Extracted zip file folder $ruby/bin does not exist!`nPlease update ps1 file"
+  exit
+}
+
 # the root folder of your copy of the SU 2024 files
-$su   = "C:/Program Files/SketchUp/SketchUp 2024-3.2.4"
+$su   = "C:/Program Files/SketchUp/SketchUp 2024-3.2.5"
+if (!(Test-Path -Path $su -PathType Container )) {
+  echo "SketchUp copy at $su does not exist!`nPlease update ps1 file"
+  exit
+}
+
 # The version of Ruby used, with the last number replaced by zero.
 $vers = "3.2.0"
 
