@@ -5,7 +5,7 @@ require 'socket'
 
 module TestSSL
 
-  HAS_MIN_MAX = (OpenSSL::VERSION >= '2.1')
+  HAS_MIN_MAX = (::OpenSSL::VERSION >= '2.1')
   
   class << self
 
