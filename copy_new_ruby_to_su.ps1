@@ -1,5 +1,11 @@
 <#
 
+---------------------------
+SketchUp.exe - Entry Point Not Found
+---------------------------
+rb_ary_detransient
+
+
 must run in admin console
 
 Code by MSP-Greg
@@ -18,33 +24,38 @@ if (!$is_admin) {
 # modify the below lines setting $ruby, $su, and $vers to match your system
 
 # where you placed the zip file folders
-$ruby = "C:/ruby-mswin-su-3.2.5"
+$ruby = 'C:/ruby-mswin-su-3.3.4'
+
 if (!(Test-Path -Path $ruby/bin -PathType Container )) {
   echo "Extracted zip file folder $ruby/bin does not exist!`nPlease update ps1 file"
   exit
 }
 
 # the root folder of your copy of the SU 2024 files
-$su   = "C:/Program Files/SketchUp/SketchUp 2024-3.2.5"
+$su = 'C:/Program Files/SketchUp/SketchUp 2024-3.3.4'
+
 if (!(Test-Path -Path $su -PathType Container )) {
   echo "SketchUp copy at $su does not exist!`nPlease update ps1 file"
   exit
 }
 
 # The version of Ruby used, with the last number replaced by zero.
-$vers = "3.2.0"
+$vers    = '3.3.0'
+$su_vers = '3.2.0'
 
-$dll_vers = $vers.replace('.','')
-$std_lib = "Tools/RubyStdLib"
+$dll_vers = $su_vers.replace('.','')
+$std_lib = 'Tools/RubyStdLib'
 
 # copy main Ruby dll
-Copy-Item -Path "$ruby\bin\x64-ucrt-ruby$dll_vers.dll" -Destination $su -Force
+Copy-Item -Path "$ruby/bin/x64-ucrt-ruby$dll_vers.dll" -Destination $su -Force
 
 # clean Tools\RubyStdLib
-Remove-Item -Path "$su\$std_lib" -Recurse
+if (Test-Path -Path "$su/$std_lib" -PathType Container ) {
+  Remove-Item -Path "$su/$std_lib" -Recurse
+}
 
 # copy into Tools/RubyStdLib
-Copy-Item "$ruby/lib/ruby/$vers" -Recurse -Destination "$su\$std_lib"
+Copy-Item "$ruby/lib/ruby/$vers" -Recurse -Destination "$su/$std_lib"
 
 # copy cert.pem
 Copy-Item "$ruby/bin/etc/ssl/cert.pem" -Destination "$su/Tools/cacert.pem"
@@ -56,7 +67,9 @@ Rename-Item -Path "$su/$std_lib/x64-mswin64_140" -NewName "$su/$std_lib/platform
 Copy-Item -Filter *.dll -Path "$ruby/bin/ruby_builtin_dlls/*" -Recurse -Destination  $su/$std_lib/platform_specific -Force
 
 # clean Tools\RubyStdLib
-Remove-Item -Path "$su/Tools/gems/$vers" -Recurse
+if (Test-Path -Path "$su/Tools/gems/$vers" -PathType Container ) {
+  Remove-Item -Path "$su/Tools/gems/$vers" -Recurse
+}
 
 # copy gems
 Copy-Item "$ruby/lib/ruby/gems/$vers" -Recurse -Destination "$su/Tools/gems/$vers"
